@@ -1,2 +1,2 @@
 # Computational-Intelligence
-MMaterial and labs of the computational intelligence course
+Material and labs of the computational intelligence course
