@@ -3,9 +3,6 @@ from copy import deepcopy
 from enum import Enum
 import numpy as np
 
-# Rules on PDF
-
-
 class Move(Enum):
     TOP = 0
     BOTTOM = 1
