@@ -25,10 +25,10 @@ class player:
     def reset(self, winnings):
         self.optimals = np.ones((3, 3))
         self.optimals[1, 1] = 3
-        if winnings[1] < winnings[0]:
-            self.alpha *= 1.1
-        else:
-            self.alpha *= 0.9
+        # if winnings[1] < winnings[0]:
+        #     self.alpha *= 1.1
+        # else:
+        #     self.alpha *= 0.9
 
 #Defining constraints
 SOL_REF = [[4, 9, 2], [3, 5, 7], [8, 1, 6]]
@@ -68,7 +68,7 @@ def check_finished(state):
     if CMP_VALUE == win_cross_diag:
         return CROSS
     if CMP_VALUE == win_cross_anti_diag:
-        return CIRCLE
+        return CROSS
     
     return BASIC_VAL
 
@@ -86,8 +86,8 @@ def random_s(state, current_player):
 #Distance is computed and saved in players optimals
 def compute_distance(state, player, available_positions):
     actual_optimals = player.optimals * available_positions
-    print("Actual optimals FIRST")
-    print(actual_optimals)
+    # print("Actual optimals FIRST")
+    # print(actual_optimals)
 
     sum_row = np.sum(state, axis=1).reshape(len(state[0]), 1)
     for e in sum_row:
@@ -107,16 +107,16 @@ def compute_distance(state, player, available_positions):
     actual_optimals += abs(sum_col)
 
     sum_diag = state[0][0] + state[1][1] + state[2][2]
-    if sum_diag == 2:
-        sum_diag = sum_diag * 2 + 1
-    elif sum_diag == -2:
+    if sum_diag == -2:
         sum_diag *= 2
+    elif sum_diag == 2:
+        sum_diag = sum_diag * 2 + 1
 
     sum_anti_diag = state[0][2] + state[1][1] + state[2][0]
-    if sum_anti_diag == 2:
-        sum_anti_diag = sum_anti_diag * 2 + 1
-    elif sum_anti_diag == -2:
+    if sum_anti_diag == -2:
         sum_anti_diag *= 2
+    elif sum_anti_diag == 2:
+        sum_anti_diag = sum_anti_diag * 2 + 1
     
     for i in range(player.optimals.shape[0]):
         #actual_optimals[i, i] = round(actual_optimals[i, i] + abs(sum_diag) * player.alpha)
@@ -128,8 +128,8 @@ def compute_distance(state, player, available_positions):
 
     #Scegli cella con abs maggiore
     player.optimals = np.multiply(actual_optimals, available_positions)
-    print("Actual optimals LATER")
-    print(player.optimals)
+    # print("Actual optimals LATER")
+    # print(player.optimals)
     print()
 
     
@@ -143,8 +143,8 @@ def opt_s(state, current_player):
             if state[i][j] == 0:
                 available_positions[i][j] = 1
 
-    print("Available position")
-    print(available_positions)
+    # print("Available position")
+    # print(available_positions)
     compute_distance(state, current_player, available_positions)
 
     #Selecting cell
@@ -185,6 +185,7 @@ if __name__ == "__main__":
                 if ending == CROSS:
                     p_wins[1] += 1
                 else:
+                    print("AAAAAAAAAAAAAAAAAAAAAAA")
                     p_wins[0] += 1
 
             player_2.reset(p_wins)
