@@ -33,8 +33,8 @@ class player:
 #Defining constraints
 SOL_REF = [[4, 9, 2], [3, 5, 7], [8, 1, 6]]
 CMP_VALUE = 15
-N_ROUNDS = 5
-N_MATCHES = 1
+N_ROUNDS = 10
+N_MATCHES = 100
 BASIC_VAL = 0
 CIRCLE = -1
 CROSS = 1
@@ -185,7 +185,6 @@ if __name__ == "__main__":
                 if ending == CROSS:
                     p_wins[1] += 1
                 else:
-                    print("AAAAAAAAAAAAAAAAAAAAAAA")
                     p_wins[0] += 1
 
             player_2.reset(p_wins)
@@ -196,4 +195,6 @@ if __name__ == "__main__":
             p_matches[0] += 1
         else:
             p_matches[1] += 1
+    
+    print(p_matches)
     
