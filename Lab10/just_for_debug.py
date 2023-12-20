@@ -1,6 +1,8 @@
 import numpy as np
 import random
 
+#Tic-tac-toe game solved in a Markovian way
+
 EMPTY_STATE = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
 
 #Class game, it has the actual state and the remaining moves
@@ -17,7 +19,7 @@ class player:
         self.alpha = 1.0
         if strategy == opt_s:
             self.optimals = np.zeros((3, 3))
-            self.optimals[1, 1] = 3
+            self.optimals[1, 1] = 2
             #self.optimals = np.ones((3, 3))
 
     def reset(self, winnings):
@@ -87,15 +89,12 @@ def compute_distance(state, player, available_positions):
     print("Actual optimals FIRST")
     print(actual_optimals)
 
-    optimals_2 = player.optimals * available_positions
-
     sum_row = np.sum(state, axis=1).reshape(len(state[0]), 1)
     for e in sum_row:
         if e[0] == -2:
             e[0] *= 2
         elif e == 2:
             e[0] = e[0] * 2 + 1
-
     actual_optimals += abs(sum_row)
     
         
@@ -105,18 +104,19 @@ def compute_distance(state, player, available_positions):
             e *= 2
         elif e == 2:
             e = e * 2 + 1
-
     actual_optimals += abs(sum_col)
 
     sum_diag = state[0][0] + state[1][1] + state[2][2]
-    if abs(sum_diag) == 2:
+    if sum_diag == 2:
+        sum_diag = sum_diag * 2 + 1
+    elif sum_diag == -2:
         sum_diag *= 2
 
     sum_anti_diag = state[0][2] + state[1][1] + state[2][0]
-    if abs(sum_anti_diag) == 2:
+    if sum_anti_diag == 2:
+        sum_anti_diag = sum_anti_diag * 2 + 1
+    elif sum_anti_diag == -2:
         sum_anti_diag *= 2
-
-    #Sommi a optimals
     
     for i in range(player.optimals.shape[0]):
         #actual_optimals[i, i] = round(actual_optimals[i, i] + abs(sum_diag) * player.alpha)
@@ -126,20 +126,10 @@ def compute_distance(state, player, available_positions):
         #actual_optimals[player.optimals.shape[0]-1-i, i] = round(actual_optimals[player.optimals.shape[0]-1-i, i] + abs(sum_anti_diag) * player.alpha)
         actual_optimals[player.optimals.shape[0]-1-i, i] += abs(sum_anti_diag)
 
-    optimals_2 += sum_row
-    optimals_2 += sum_col
-    for i in range(player.optimals.shape[0]):
-        optimals_2[i, i] += sum_diag
-    for i in range(player.optimals.shape[0]):
-        optimals_2[player.optimals.shape[0]-1-i, i] += sum_anti_diag
-
     #Scegli cella con abs maggiore
     player.optimals = np.multiply(actual_optimals, available_positions)
     print("Actual optimals LATER")
     print(player.optimals)
-    print()
-    print("optimals 2 LATER")
-    print(optimals_2)
     print()
 
     
@@ -159,7 +149,7 @@ def opt_s(state, current_player):
 
     #Selecting cell
     sr, sc = np.unravel_index(np.argmax(abs(current_player.optimals), axis=None), current_player.optimals.shape)
-    #print((sr, sc))
+    print((sr, sc))
     state[sr][sc] = current_player.sign
 
     return state
