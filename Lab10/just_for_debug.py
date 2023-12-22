@@ -4,6 +4,13 @@ import random
 #Tic-tac-toe game solved in a Markovian way
 
 EMPTY_STATE = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
+SOL_REF = [[4, 9, 2], [3, 5, 7], [8, 1, 6]]
+CMP_VALUE = 15
+N_ROUNDS = 10
+N_MATCHES = 1
+BASIC_VAL = 0
+CIRCLE = -1
+CROSS = 1
 
 #Class game, it has the actual state and the remaining moves
 class game:
@@ -11,16 +18,13 @@ class game:
         self.state = [[0, 0, 0], [0, 0, 0], [0, 0, 0]]
         self.possible_moves = 9
 
-#Se la strategia è ottima vedi di fare una specie di distance e scegliere la soluzione migliore
 class player:
     def __init__(self, sign, strategy):
         self.sign = sign
         self.strategy = strategy
-        self.alpha = 1.0
+        self.exp_rate = 0.3
         if strategy == opt_s:
             self.optimals = np.zeros((3, 3))
-            self.optimals[1, 1] = 2
-            #self.optimals = np.ones((3, 3))
 
     def reset(self, winnings):
         self.optimals = np.ones((3, 3))
@@ -29,15 +33,6 @@ class player:
         #     self.alpha *= 1.1
         # else:
         #     self.alpha *= 0.9
-
-#Defining constraints
-SOL_REF = [[4, 9, 2], [3, 5, 7], [8, 1, 6]]
-CMP_VALUE = 15
-N_ROUNDS = 10
-N_MATCHES = 100
-BASIC_VAL = 0
-CIRCLE = -1
-CROSS = 1
 
 #Function that receives a state a computes if it is won or not
 def check_finished(state):
@@ -164,7 +159,7 @@ if __name__ == "__main__":
 
     #Dopo un tot dai feed back e vari parametri
     #Potresti definire un epslion che è il peso da sommarte nell'optimal e saeconda del feedback lo vari
-    for j in range(N_MATCHES):
+    for _ in range(N_MATCHES):
         for i in range(N_ROUNDS):
             current_player = 0
             match = game()
