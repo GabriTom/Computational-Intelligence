@@ -1,12 +1,15 @@
 import random
 from copy import deepcopy
 import numpy as np
+import utils
 from game import Game, Move, Player
+
+TRAINING_MATCHES = 1000
+TESTING_MATCHES = 100
 
 #Strategies:
 #    - Random : already implemented
 #    - Optimal
-#    - Mathematical
 #    - RL
 
 class RandomPlayer(Player):
@@ -26,7 +29,6 @@ class OptimalPlayer(Player):
         #Check su righe e colonne, sommi, fai mossa in quella che esce puteggio più altoù
         row_max_idx = np.argmax(np.sum(game.get_board(), axis = 1))
         col_max_idx = np.argmax(np.sum(game.get_board(), axis = 0))
-        print(col_max_idx, " ", row_max_idx)
         from_pos = (random.randint(0, 4), random.randint(0, 4))
         move = random.choice([Move.TOP, Move.BOTTOM, Move.LEFT, Move.RIGHT])
         return from_pos, move
@@ -34,16 +36,15 @@ class OptimalPlayer(Player):
     def find_neighbours():
         print("de")
 
+# TODO implementa fase di training e test
 class QLearningPlayer(Player):
-    def __init__(self, sign):
+    def __init__(self):
         super().__init__()
-        self.exp_rate = 0.3
+        self.exp_rate = 0.1
         self.decay_gamma = 0.5
         self.lr = 0.5
         self.states = []
         self.states_values = {}
-        self.training_phase = True
-        self.sign = sign
 
     def feedReward(self, reward):
         for st in reversed(self.states):
@@ -52,8 +53,14 @@ class QLearningPlayer(Player):
             self.states_values[st] += self.lr * (self.decay_gamma * reward - self.states_values[st])
             reward = self.states_values[st]
 
+    def go_testing(self):
+        self.exp_rate = 0.01
+
+    def reset(self):
+        self.states = []
+
     #Returns a hash of a state (= state in a string)
-    def get_hash(state):
+    def get_hash(self, state):
         ret = []
         for row in state:
             for cell in row:
@@ -62,54 +69,69 @@ class QLearningPlayer(Player):
 
     #Memorizza nel dictionary facendo rotazioni della board così occupi meno spazio
     def make_move(self, game: 'Game') -> tuple[tuple[int, int], Move]:
-        state = game.get_board()
+        state = deepcopy(game)
         available_positions_list = []
-        if np.random.uniform(0, 1) < self.exp_rate:
-            from_pos, move = RandomPlayer().make_move(state)
-        else:
-            #Creating a list of available positions
-            for i in range(len(state)):
-                for j in range(len(state[i])):
-                    if state[i][j] == 0:
-                        available_positions_list.append([i, j])
 
-            value_max = -9999
-            for p in available_positions_list:
-                for s in __acceptable_slides(p):
-                    next_state = deepcopy(game)
+        #Creating a list of available positions
+        for i in range(len(state.get_board())):
+            if i == 0 or i == 4:
+                cols = range(len(state.get_board()[i]))
+            else:
+                cols = [0, 4]
+            for j in cols:
+                if state.get_board()[i][j] == -1 or state.get_board()[i][j] == 1:
+                    available_positions_list.append((i,j))
 
-                    next_state = next_state.__move(p, s, self)
-
-                    next_board_hash = self.get_hash(next_state)
-                    value = 0 if self.states_values.get(next_board_hash) is None else self.states_values.get(next_board_hash)
-                    # print("value", value)
-                    if value >= value_max:
-                        value_max = value
-                        from_pos = p
-                        move = s
-
-            self.states.append(self.get_hash(next_state))
-
-        return from_pos, move
+        from_pos = random.choice(available_positions_list)
+        move = random.choice(utils.acceptable_slides(from_pos))
+        while not state._Game__move((from_pos[1], from_pos[0]), move, game.current_player_idx):
+            from_pos = random.choice(available_positions_list)
+            move = random.choice(utils.acceptable_slides(from_pos))
         
+        if np.random.uniform(0, 1) >= self.exp_rate:
+            value_max = -9999
+            best_hash = ''
+            next_state = deepcopy(game)
+            #Try every possible move and slide
+            for p in available_positions_list:
+                for s in utils.acceptable_slides(p):
+                    if next_state._Game__move((p[1], p[0]), s, game.current_player_idx):
+                        next_board_hash = self.get_hash(next_state.get_board())
+                        value = 0 if self.states_values.get(next_board_hash) is None else self.states_values.get(next_board_hash)
 
-# class MathematicalPlayer(Player):
-#     def __init__(self) -> None:
-#         super().__init__()
+                        if value > value_max:
+                            value_max = value
+                            best_hash = next_board_hash
+                            from_pos = p
+                            move = s
 
-#     def make_move(self, game: 'Game') -> tuple[tuple[int, int], Move]:
-#         from_pos = (random.randint(0, 4), random.randint(0, 4))
-#         move = random.choice([Move.TOP, Move.BOTTOM, Move.LEFT, Move.RIGHT])
-#         return from_pos, move
+            self.states.append(best_hash)
+        return (from_pos[1], from_pos[0]), move
 
 if __name__ == '__main__':
-    g = Game()
-    g.print()
-    # Fai un tot di partite per tuning parameters
-    # TO DO playerone must be vector of strategies
-    # TO DO 2 then chnage player2 have see if something happens
+    victories = [0, 0]
+    victories_train = [0, 0]
+
+    #Training mode
     player1 = RandomPlayer()
-    player2 = QLearningPlayer(1)
-    winner = g.play(player1, player2)
-    g.print()
-    print(f"Winner: Player {winner}")
+    player2 = QLearningPlayer()
+
+    for pol in range(TRAINING_MATCHES):
+        g = Game()
+        winner = g.play(player1, player2)
+        #print(player2.states)
+        if winner == 1:
+            player2.feedReward(1)
+        else:
+            player2.feedReward(0)
+        player2.reset()
+        victories_train[winner] += 1
+    print(victories_train)
+
+    #Testing mode
+    player2.go_testing()
+    for _ in range(TESTING_MATCHES):
+        g = Game()
+        winner = g.play(player1, player2)
+        victories[winner] += 1
+    print(victories)
