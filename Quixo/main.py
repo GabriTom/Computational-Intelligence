@@ -4,7 +4,7 @@ import numpy as np
 import utils
 from game import Game, Move, Player
 
-TRAINING_MATCHES = 4000
+TRAINING_MATCHES = 2000
 TESTING_MATCHES = 100
 N_MATCH = 5
 
