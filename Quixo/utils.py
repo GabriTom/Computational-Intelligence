@@ -1,11 +1,12 @@
-from game import Game, Move, Player
+from game import Move
 
+#Function that takes a position and returns the all possible slides for that position
 def acceptable_slides(from_pos):
-    # define the corners
-    SIDES = [(0, 0), (0, 4), (4, 0), (4, 4)]
+    # Define the corners
+    CORNERS = [(0, 0), (0, 4), (4, 0), (4, 4)]
     possible_slides = set()
     # if the piece position is not in a corner
-    if from_pos not in SIDES:
+    if from_pos not in CORNERS:
         # if it is at the TOP, it can be moved down, left or right
         if from_pos[0] == 0:
             possible_slides.add(Move.BOTTOM)
@@ -42,8 +43,3 @@ def acceptable_slides(from_pos):
             possible_slides.add(Move.TOP)
             possible_slides.add(Move.LEFT)
     return list(possible_slides)
-
-#Ritorna un game
-def move(g: Game, from_pos: tuple[int, int], slide: Move, player_id: int) -> bool:
-    g._Game__move(from_pos, slide, player_id)
-    return g.get_board()

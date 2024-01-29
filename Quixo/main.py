@@ -4,7 +4,7 @@ import numpy as np
 import utils
 from game import Game, Move, Player
 
-TRAINING_MATCHES = 10
+TRAINING_MATCHES = 4000
 TESTING_MATCHES = 100
 N_MATCH = 5
 
@@ -48,7 +48,7 @@ class QLearningPlayer(Player):
     #Function that gives a board computes all its simmetries.
     def compute_symmetries(self, board):
         rev_b = board[::-1]
-        tra_b = np.array(board).T
+        tra_b = np.matrix(board).T
         rev_tra_b = tra_b[::-1]
         return (board, rev_b, tra_b, rev_tra_b)
 
@@ -179,7 +179,7 @@ if __name__ == '__main__':
         for _ in range(TESTING_MATCHES):
             g = Game()
             winner = g.play(player1, player2)
-        #     victories[winner] += 1
+            victories[winner] += 1
         # if victories[0] > victories[1]:
         #     match_wins[0] += 1
         # else:
